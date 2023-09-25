@@ -19,7 +19,7 @@ GetSysInfo() {
 
 #获取网卡信息
 GetNetCard() {
-  if [ "$1" == "1" ]; then
+  if [ "$1" = "1" ]; then
     if [ -d "/sys/devices/virtual/net" ]; then
       ls /sys/devices/virtual/net
     fi
@@ -30,9 +30,25 @@ GetNetCard() {
   fi
 }
 
+UseSystemd() {
+    # shellcheck source=/dev/null
+    . /etc/os-release
+
+    test "${ID}" = "alpine"
+}
 
 GetTimeZone(){
-  timedatectl | grep "Time zone" | awk '{printf $3}'
+  if UseSystemd; then
+    timedatectl | grep "Time zone" | awk '{printf $3}'
+  else
+    local timezone="UTC"
+    if [ -L /etc/localtime ]; then
+        local zonepath
+        zonepath="$(readlink /etc/localtime)"
+        timezone="${zonepath#*/zoneinfo/}"
+    fi
+    echo -n "$timezone"
+  fi
 }
 
 #查看网卡状态
@@ -70,13 +86,13 @@ GetLocalJoinNetworks() {
 #param 需要格式化的目录 /dev/sda1
 #param 格式
 FormatDisk() {
-  if [ "$2" == "fat32" ]; then
+  if [ "$2" = "fat32" ]; then
     mkfs.vfat -F 32 $1
-  elif [ "$2" == "ntfs" ]; then
+  elif [ "$2" = "ntfs" ]; then
     mkfs.ntfs $1
-  elif [ "$2" == "ext4" ]; then
+  elif [ "$2" = "ext4" ]; then
     mkfs.ext4 -m 1 -F $1
-  elif [ "$2" == "exfat" ]; then
+  elif [ "$2" = "exfat" ]; then
     mkfs.exfat $1
   else
     mkfs.ext4 -m 1 -F $1
@@ -146,8 +162,8 @@ AutoRemoveUnuseDir() {
 
     path="$DIRECTORY$i"
     mountStr=$(mountpoint $path)
-    notMountpoint="is not a mountpoint"
-    if [[ $mountStr =~ $notMountpoint ]]; then
+    notMountpointRegex=".*is not a mountpoint"
+    if expr "$mountStr" : "$notMountpointRegex" >/dev/null; then
       if [ "$(ls -A $path)" = "" ]; then
         rm -fr $path
       else
@@ -181,12 +197,12 @@ do_mount() {
   LABEL=$2
   if grep -q " ${LABEL} " /etc/mtab; then
     # Already in use, make a unique one
-    LABEL+="-${DEVBASE}"
+    LABEL="${LABEL}-${DEVBASE}"
   fi
   DEV_LABEL="${LABEL}"
 
   # Use the device name in case the drive doesn't have label
-  if [ -z ${DEV_LABEL} ]; then
+  if [ -z "${DEV_LABEL}" ]; then
     DEV_LABEL="${DEVBASE}"
   fi
 
@@ -226,7 +242,7 @@ do_umount() {
   DEVICE="${DEVBASE}"
   MOUNT_POINT=$(mount | grep ${DEVICE} | awk '{ print $3 }')
 
-  if [[ -z ${MOUNT_POINT} ]]; then
+  if [ -z "${MOUNT_POINT}" ]; then
     ${log} "Warning: ${DEVICE} is not mounted"
   else
     /bin/kill -9 $(lsof ${MOUNT_POINT})
@@ -235,11 +251,36 @@ do_umount() {
     if [ "`ls -A ${MOUNT_POINT}`" = "" ]; then
       /bin/rm -fr "${MOUNT_POINT}"
     fi
-    
+
     sed -i.bak "\@${MOUNT_POINT}@d" /var/log/usb-mount.track
   fi
 
 }
+
+Already_Root() {
+  test "$(id -u)" -eq 0
+}
+
+Service() {
+  Already_Root || sudo_cmd="sudo"
+
+  if UseSystemd; then
+    $sudo_cmd systemctl "$1" "$2"
+  else
+    local svcname
+    svcname="${2%.service}"
+    cmd="$1"
+
+    expr "${svcname}" : '.*\.socket$' >/dev/null || return 0 # OpenRC doesn't have socket services.
+
+    case $cmd in
+      "enable" ) $sudo_cmd rc-update add "$svcname" default;;
+      "disable" ) $sudo_cmd rc-update del "$svcname";;
+      * ) $sudo_cmd rc-service "$svcname" "$cmd";;
+    esac
+  fi
+}
+
 # $1=/mnt/volume1/data.img
 # $2=100G
 PackageDocker() {
@@ -266,8 +307,8 @@ PackageDocker() {
   #3挂载img文件
   sudo mount -o loop $image $docker
   #4给移动/var/lib/docker数据到img挂载的目录
-  systemctl stop docker.socket
-  systemctl stop docker
+  Service stop docker.socket
+  Service stop docker
   cp -r /var/lib/docker/* ${docker}/
   #5在/etc/docker写入daemon.json(需要检查)
   if [ -d "$daemon" ]; then
@@ -276,15 +317,16 @@ PackageDocker() {
   echo "{\"data-root\": \"$docker\"}" >$daemon
   #删除老数据腾出空间
   #rm -fr /var/lib/docker
-  systemctl start docker.socket
-  systemctl start docker
+  Service start docker.socket
+  Service start docker
 }
 
 DockerImgMove() {
+  Already_Root || sudo_cmd="sudo"
   image=$1
-  systemctl stop docker.socket
-  systemctl stop docker
-  sudo umount -f $image
+  Service stop docker.socket
+  Service stop docker
+  $sudo_cmd umount -f $image
 }
 
 GetDockerDataRoot() {
@@ -304,7 +346,7 @@ TarFolder() {
   tar -zcvf data.tar.gz -C/DATA/ AppDataBak/
 
   #解压
-  tar zxvf data.tar.gz 
+  tar zxvf data.tar.gz
 
   #查看某文件夹下的所有包括子文件夹文件
   ls /DATA/Media -lR | grep "^-" | wc -l
@@ -315,25 +357,25 @@ TarFolder() {
 }
 
 USB_Start_Auto() {
-  ((EUID)) && sudo_cmd="sudo"
+  Already_Root || sudo_cmd="sudo"
   $sudo_cmd systemctl enable devmon@devmon
   $sudo_cmd systemctl start devmon@devmon
 }
 
 USB_Stop_Auto() {
-  ((EUID)) && sudo_cmd="sudo"
+  Already_Root || sudo_cmd="sudo"
   $sudo_cmd systemctl stop devmon@devmon
   $sudo_cmd systemctl disable devmon@devmon
   $sudo_cmd udevil clean
 }
 
-GetDeviceTree(){  
+GetDeviceTree(){
   cat /proc/device-tree/model
 }
 
 # restart samba service
 RestartSMBD(){
-  $sudo_cmd systemctl restart smbd
+  Service restart smbd
 }
 
 # edit user password $1:username
@@ -349,7 +391,7 @@ AddSmabaUser(){
 EOF
 }
 
-# $1:username $2:host $3:share $4:port $5:mountpoint $6:password 
+# $1:username $2:host $3:share $4:port $5:mountpoint $6:password
 MountCIFS(){
  $sudo_cmd mount -t cifs -o username=$1,password=$6,port=$4 //$2/$3 $5
 }

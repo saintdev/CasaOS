@@ -89,7 +89,7 @@ force user = root
 	//write config file
 	file.WriteToPath([]byte(configStr), "/etc/samba", "smb.casa.conf")
 	//restart samba
-	command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/helper.sh ;RestartSMBD")
+	command2.ExecResultStrArray(". " + config.AppInfo.ShellPath + "/helper.sh ;RestartSMBD")
 
 }
 func (s *sharesStruct) InitSambaConfig() {

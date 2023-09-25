@@ -1,0 +1,16 @@
+#!/sbin/openrc-run
+
+description="rclone"
+command="/usr/bin/rclone"
+command_args="rcd --rc-addr /var/run/rclone/rclone.sock --rc-no-auth --rc-allow-origin \"*\""
+pidfile="/var/run/rclone/rclone.pid"
+supervisor=supervise-daemon
+respawn_delay=10
+
+depend() {
+	use net
+}
+
+start_pre() {
+	checkpath --directory-truncate /var/run/rclone
+}

@@ -235,7 +235,7 @@ func (c *systemService) CreateFile(path string) (int, error) {
 }
 
 func (c *systemService) GetDeviceTree() string {
-	return command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;GetDeviceTree")
+	return command2.ExecResultStr(". " + config.AppInfo.ShellPath + "/helper.sh ;GetDeviceTree")
 }
 
 func (c *systemService) GetSysInfo() host.InfoStat {
@@ -255,7 +255,7 @@ func (c *systemService) GetDiskInfo() *disk.UsageStat {
 }
 
 func (c *systemService) GetNetState(name string) string {
-	return command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;CatNetCardState " + name)
+	return command2.ExecResultStr(". " + config.AppInfo.ShellPath + "/helper.sh ;CatNetCardState " + name)
 }
 
 func (c *systemService) GetDirPathOne(path string) (m model.Path) {
@@ -352,7 +352,7 @@ func (c *systemService) GetNet(physics bool) []string {
 	if physics {
 		t = "2"
 	}
-	return command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/helper.sh ;GetNetCard " + t)
+	return command2.ExecResultStrArray(". " + config.AppInfo.ShellPath + "/helper.sh ;GetNetCard " + t)
 }
 
 func (s *systemService) UpdateSystemVersion(version string) {
@@ -375,15 +375,15 @@ func (s *systemService) UpdateSystemVersion(version string) {
 }
 
 func (s *systemService) UpdateAssist() {
-	command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/assist.sh")
+	command2.ExecResultStrArray(". " + config.AppInfo.ShellPath + "/assist.sh")
 }
 
 func (s *systemService) GetTimeZone() string {
-	return command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;GetTimeZone")
+	return command2.ExecResultStr(". " + config.AppInfo.ShellPath + "/helper.sh ;GetTimeZone")
 }
 
 func (s *systemService) GetSystemConfigDebug() []string {
-	return command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/helper.sh ;GetSysInfo")
+	return command2.ExecResultStrArray(". " + config.AppInfo.ShellPath + "/helper.sh ;GetSysInfo")
 }
 
 func (s *systemService) UpAppOrderFile(str, id string) {

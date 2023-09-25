@@ -33,7 +33,7 @@ do_mount() {
   LABEL=${DEVBASE}
   if grep -q " /DATA/USB_Storage_${LABEL} " /etc/mtab; then
     # Already in use, make a unique one
-    LABEL+="_${DEVBASE}"
+    LABEL="${LABEL}_${DEVBASE}"
   fi
   DEV_LABEL="${LABEL}"
 
@@ -63,7 +63,7 @@ do_mount() {
 
   # ${log} "Mount point: ${MOUNT_POINT}"
 
-  
+
 
   #  # Global mount options
   #  OPTS="rw,relatime"
@@ -109,7 +109,7 @@ do_mount() {
 
 do_umount() {
 
-  if [[ -z ${MOUNT_POINT} ]]; then
+  if [ -z "${MOUNT_POINT}" ]; then
     ${log} "Warning: ${DEVICE} is not mounted"
   else
     #/bin/kill -9 $(lsof ${MOUNT_POINT})

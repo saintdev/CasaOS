@@ -5,29 +5,30 @@
  # @LastEditors: LinkLeong
  # @LastEditTime: 2022-11-15 15:53:37
  # @FilePath: /CasaOS/build/sysroot/usr/share/casaos/cleanup/script.d/03-cleanup-casaos.sh
- # @Description: 
+ # @Description:
  # @Website: https://www.casaos.io
- # Copyright (c) 2022 by icewhale, All Rights Reserved. 
-### 
+ # Copyright (c) 2022 by icewhale, All Rights Reserved.
+###
 
 set -e
 
 readonly APP_NAME_SHORT=casaos
 
 __get_setup_script_directory_by_os_release() {
-	pushd "$(dirname "${BASH_SOURCE[0]}")/../service.d/${APP_NAME_SHORT}" &>/dev/null
 
-	{
+	(
+		cd "$(dirname "${0}")/../service.d/${APP_NAME_SHORT}" >/dev/null
+
 		# shellcheck source=/dev/null
-		{
-			source /etc/os-release
+		(
+			. /etc/os-release
 			{
-				pushd "${ID}"/"${VERSION_CODENAME}" &>/dev/null
+				cd "${ID}"/"${VERSION_CODENAME}" >/dev/null
 			} || {
-				pushd "${ID}" &>/dev/null
+				cd "${ID}" >/dev/null
 			} || {
-                [[ -n ${ID_LIKE} ]] && for ID in ${ID_LIKE}; do
-				    pushd "${ID}" >/dev/null && break
+                [ -n "${ID_LIKE}" ] && for ID in ${ID_LIKE}; do
+				    cd "${ID}" >/dev/null && break
                 done
 			} || {
 				echo "Unsupported OS: ${ID} ${VERSION_CODENAME} (${ID_LIKE})"
@@ -35,17 +36,12 @@ __get_setup_script_directory_by_os_release() {
 			}
 
 			pwd
-
-			popd &>/dev/null
-
-		} || {
+		) || {
 			echo "Unsupported OS: unknown"
 			exit 1
 		}
 
-	}
-
-	popd &>/dev/null
+	) || exit 1
 }
 
 SETUP_SCRIPT_DIRECTORY=$(__get_setup_script_directory_by_os_release)

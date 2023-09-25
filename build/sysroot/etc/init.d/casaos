@@ -1,0 +1,14 @@
+#!/sbin/openrc-run
+
+: ${casaos_config:=/etc/casaos/casaos.conf}
+
+description="CasaOS Main Service"
+command="/usr/bin/casaos"
+command_args="-c $casaos_config"
+required_files=$casaos_config
+pidfile="/var/run/casaos/casaos.pid"
+supervisor="supervise-daemon"
+
+depend() {
+	need casaos-message-bus rclone
+}
