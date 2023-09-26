@@ -9,4 +9,4 @@
 ###
 
 
-curl -fsSL https://raw.githubusercontent.com/IceWhaleTech/get/main/update.sh | /bin/sh
+wget -qO - https://raw.githubusercontent.com/IceWhaleTech/get/main/update.sh | /bin/sh

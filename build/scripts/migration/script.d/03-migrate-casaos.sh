@@ -59,9 +59,9 @@ __is_migration_needed() {
 __get_download_domain(){
     local region
     # Use ipconfig.io/country and https://ifconfig.io/country_code to get the country code
-    region=$(curl --connect-timeout 2 -s ipconfig.io/country || echo "")
+    region=$(wget -T 2 -qO - ipconfig.io/country || echo "")
     if [ "${region}" = "" ]; then
-       region=$(curl --connect-timeout 2 -s https://ifconfig.io/country_code || echo "")
+       region=$(wget -T 2 -qO - https://ifconfig.io/country_code || echo "")
     fi
     if [ "${region}" = "China" ] || [ "${region}" = "CN" ]; then
         echo "https://casaos.oss-cn-shanghai.aliyuncs.com/"
@@ -162,7 +162,7 @@ while read -r VERSION_PAIR; do
                 __info "Migration tool ${MIGRATION_TOOL_FILE} exists. Skip downloading."
             else
                 __info "Dowloading ${URL}..."
-                curl -fsSL -o "${MIGRATION_TOOL_FILE}" -O "${URL}"
+                curl -qO "${MIGRATION_TOOL_FILE}" "${URL}"
             fi
         ) || __error "Failed to download migration tools"
 
