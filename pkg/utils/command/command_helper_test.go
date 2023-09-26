@@ -26,7 +26,7 @@ func TestExecuteScripts(t *testing.T) {
 	defer f.Close()
 
 	// write a sample script
-	_, err = f.WriteString("#!/bin/bash\necho 123")
+	_, err = f.WriteString("#!/bin/sh\necho 123")
 	assert.NilError(t, err)
 
 	command.ExecuteScripts(tmpDir)

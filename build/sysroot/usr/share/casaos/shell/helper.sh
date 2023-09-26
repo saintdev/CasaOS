@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # 获取系统信息
 GetSysInfo() {

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 ###
  # @Author:  LinkLeong link@icewhale.com
  # @Date: 2022-06-30 10:08:33

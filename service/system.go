@@ -364,10 +364,10 @@ func (s *systemService) UpdateSystemVersion(version string) {
 	file.CreateFile(config.AppInfo.LogPath + "/upgrade.log")
 	// go command2.OnlyExec("curl -fsSL https://raw.githubusercontent.com/LinkLeong/casaos-alpha/main/update.sh | bash")
 	if len(config.ServerInfo.UpdateUrl) > 0 {
-		go command2.OnlyExec("curl -fsSL " + config.ServerInfo.UpdateUrl + " | bash")
+		go command2.OnlyExec("curl -fsSL " + config.ServerInfo.UpdateUrl + " | /bin/sh")
 	} else {
 		osRelease, _ := file.ReadOSRelease()
-		go command2.OnlyExec("curl -fsSL https://get.casaos.io/update?t=" + osRelease["MANUFACTURER"] + " | bash")
+		go command2.OnlyExec("curl -fsSL https://get.casaos.io/update?t=" + osRelease["MANUFACTURER"] + " | /bin/sh")
 	}
 
 	// s.log.Error(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version)

@@ -11,7 +11,7 @@ import (
 )
 
 func OnlyExec(cmdStr string) {
-	cmd := exec.Command("/bin/bash", "-c", cmdStr)
+	cmd := exec.Command("/bin/sh", "-c", cmdStr)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		fmt.Println(err)
@@ -29,7 +29,7 @@ func OnlyExec(cmdStr string) {
 }
 
 func ExecResultStrArray(cmdStr string) []string {
-	cmd := exec.Command("/bin/bash", "-c", cmdStr)
+	cmd := exec.Command("/bin/sh", "-c", cmdStr)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		fmt.Println(err)
@@ -62,7 +62,7 @@ func ExecResultStrArray(cmdStr string) []string {
 }
 
 func ExecResultStr(cmdStr string) string {
-	cmd := exec.Command("/bin/bash", "-c", cmdStr)
+	cmd := exec.Command("/bin/sh", "-c", cmdStr)
 	println(cmd.String())
 
 	stdout, err := cmd.StdoutPipe()
