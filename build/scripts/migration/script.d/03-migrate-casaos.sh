@@ -20,9 +20,6 @@ __error() {
     exit 1
 }
 
-__is_version_gt() {
-    test "$(echo "$@" | tr " " "\n" | sort -V | head -n 1)" != "$1"
-}
 __normalize_version() {
     local version
     if [ "${1::1}" = "v" ]; then
@@ -32,6 +29,10 @@ __normalize_version() {
     fi
 
     echo "$version"
+}
+
+__is_version_gt() {
+    test "$(echo "$@" | tr " " "\n" | sort -V | head -n 1)" != "$1"
 }
 
 __is_migration_needed() {
@@ -55,7 +56,6 @@ __is_migration_needed() {
 
     __is_version_gt "${version2}" "${version1}"
 }
-
 __get_download_domain(){
     local region
     # Use ipconfig.io/country and https://ifconfig.io/country_code to get the country code
@@ -71,28 +71,35 @@ __get_download_domain(){
 }
 
 DOWNLOAD_DOMAIN=$(__get_download_domain)
-
 BUILD_PATH=$(dirname "${BASH_SOURCE[0]}")/../../..
-SOURCE_ROOT=${BUILD_PATH}/sysroot
 
-APP_NAME="casaos"
+readonly BUILD_PATH
+readonly SOURCE_ROOT=${BUILD_PATH}/sysroot
+
+readonly APP_NAME="casaos"
 
 # check if migration is needed
-SOURCE_BIN_PATH=${SOURCE_ROOT}/usr/bin
-SOURCE_BIN_FILE=${SOURCE_BIN_PATH}/${APP_NAME}
+readonly SOURCE_BIN_PATH=${SOURCE_ROOT}/usr/bin
+readonly SOURCE_BIN_FILE=${SOURCE_BIN_PATH}/${APP_NAME}
 
-CURRENT_BIN_PATH=/usr/bin
-CURRENT_BIN_PATH_LEGACY=/usr/local/bin
-CURRENT_BIN_FILE=${CURRENT_BIN_PATH}/${APP_NAME}
+readonly CURRENT_BIN_PATH=/usr/bin
+readonly CURRENT_BIN_PATH_LEGACY=/usr/local/bin
+readonly CURRENT_BIN_FILE=${CURRENT_BIN_PATH}/${APP_NAME}
+
 CURRENT_BIN_FILE_LEGACY=$(realpath -e ${CURRENT_BIN_PATH_LEGACY}/${APP_NAME} || which ${APP_NAME} || echo CURRENT_BIN_FILE_LEGACY_NOT_FOUND)
+readonly CURRENT_BIN_FILE_LEGACY
 
 SOURCE_VERSION="$(${SOURCE_BIN_FILE} -v)"
+readonly SOURCE_VERSION
+
 CURRENT_VERSION="$(${CURRENT_BIN_FILE} -v || ${CURRENT_BIN_FILE_LEGACY} -v || (stat "${CURRENT_BIN_FILE_LEGACY}" >/dev/null && echo LEGACY_WITHOUT_VERSION) || echo CURRENT_VERSION_NOT_FOUND)"
+readonly CURRENT_VERSION
 
 __info_done "CURRENT_VERSION: ${CURRENT_VERSION}"
 __info_done "SOURCE_VERSION: ${SOURCE_VERSION}"
 
 NEED_MIGRATION=$(__is_migration_needed "${CURRENT_VERSION}" "${SOURCE_VERSION}" && echo "true" || echo "false")
+readonly NEED_MIGRATION
 
 if [ "${NEED_MIGRATION}" = "false" ]; then
     __info_done "Migration is not needed."
@@ -102,18 +109,18 @@ fi
 ARCH="unknown"
 
 case $(uname -m) in
-x86_64)
-    ARCH="amd64"
-    ;;
-aarch64)
-    ARCH="arm64"
-    ;;
-armv7l)
-    ARCH="arm-7"
-    ;;
-*)
-    __error "Unsupported architecture"
-    ;;
+    x86_64)
+        ARCH="amd64"
+        ;;
+    aarch64)
+        ARCH="arm64"
+        ;;
+    armv7l)
+        ARCH="arm-7"
+        ;;
+    *)
+        __error "Unsupported architecture"
+        ;;
 esac
 
 __info "ARCH: ${ARCH}"
@@ -123,9 +130,10 @@ MIGRATION_SERVICE_DIR=${1}
 if [ -z "${MIGRATION_SERVICE_DIR}" ]; then
     MIGRATION_SERVICE_DIR=${BUILD_PATH}/scripts/migration/service.d/${APP_NAME}
 fi
-MIGRATION_LIST_FILE=${MIGRATION_SERVICE_DIR}/migration.list
-MIGRATION_PATH=()
 
+readonly MIGRATION_LIST_FILE=${MIGRATION_SERVICE_DIR}/migration.list
+
+MIGRATION_PATH=()
 CURRENT_VERSION_FOUND="false"
 
 # a VERSION_PAIR looks like "v0.3.5 <url>"
@@ -150,7 +158,7 @@ while read -r VERSION_PAIR; do
     if [ "${CURRENT_VERSION_FOUND}" = "true" ]; then
         MIGRATION_PATH+=("${URL// /}")
     fi
-done <"${MIGRATION_LIST_FILE}"
+done < "${MIGRATION_LIST_FILE}"
 
 if [ ${#MIGRATION_PATH[@]} -eq 0 ]; then
     __warning "No migration path found from ${CURRENT_VERSION} to ${SOURCE_VERSION}"
