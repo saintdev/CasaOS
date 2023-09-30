@@ -178,7 +178,6 @@ fi
     cd "${MIGRATION_SERVICE_DIR}"
 
     for MIGRATION_TOOL_FILE in "linux-${ARCH}-${APP_NAME}-migration-tool-"*.tar.gz; do
-        MIGRATION_TOOL_FILE=$(basename "${URL}")
         __info "Extracting ${MIGRATION_TOOL_FILE}..."
         tar zxvf "${MIGRATION_TOOL_FILE}" || __error "Failed to extract ${MIGRATION_TOOL_FILE}"
 

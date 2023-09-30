@@ -17,15 +17,15 @@ readonly APP_NAME_SHORT=casaos
 __get_setup_script_directory_by_os_release() {
 
 	(
-		cd "$(dirname "${0}")/../service.d/${APP_NAME_SHORT}" >/dev/null
+		cd "$(dirname "${0}")/../service.d/${APP_NAME_SHORT}" >/dev/null 2>&1
 
 		# shellcheck source=/dev/null
 		(
 			. /etc/os-release
 			{
-				cd "${ID}"/"${VERSION_CODENAME}" >/dev/null
+				cd "${ID}"/"${VERSION_CODENAME}" >/dev/null 2>&1
 			} || {
-				cd "${ID}" >/dev/null
+				cd "${ID}" >/dev/null 2>&1
 			} || {
                 [ -n "${ID_LIKE}" ] && for ID in ${ID_LIKE}; do
 				    cd "${ID}" >/dev/null && break
