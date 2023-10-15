@@ -18,8 +18,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/IceWhaleTech/CasaOS-Common/utils/init_system"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
-	"github.com/IceWhaleTech/CasaOS-Common/utils/systemctl"
 	"go.uber.org/zap"
 
 	"github.com/IceWhaleTech/CasaOS/model"
@@ -34,7 +34,8 @@ import (
 // service
 
 func GetSambaStatus(c *gin.Context) {
-	if status, err := systemctl.IsServiceRunning("smbd"); err != nil || !status {
+	initMgr := init_system.NewInitManager()
+	if status, err := initMgr.IsServiceRunning("smbd"); err != nil || !status {
 		c.JSON(http.StatusInternalServerError, model.Result{
 			Success: common_err.SERVICE_NOT_RUNNING,
 			Message: common_err.GetMsg(common_err.SERVICE_NOT_RUNNING),

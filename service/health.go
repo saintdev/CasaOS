@@ -1,8 +1,8 @@
 package service
 
 import (
+	"github.com/IceWhaleTech/CasaOS-Common/utils/init_system"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/port"
-	"github.com/IceWhaleTech/CasaOS-Common/utils/systemctl"
 )
 
 type HealthService interface {
@@ -13,7 +13,8 @@ type HealthService interface {
 type service struct{}
 
 func (s *service) Services() (map[bool]*[]string, error) {
-	services, err := systemctl.ListServices("casaos*")
+	initMgr := init_system.NewInitManager()
+	services, err := initMgr.ListServices("casaos*")
 	if err != nil {
 		return nil, err
 	}

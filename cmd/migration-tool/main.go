@@ -16,7 +16,7 @@ import (
 	"os"
 
 	interfaces "github.com/IceWhaleTech/CasaOS-Common"
-	"github.com/IceWhaleTech/CasaOS-Common/utils/systemctl"
+	"github.com/IceWhaleTech/CasaOS-Common/utils/init_system"
 	"github.com/IceWhaleTech/CasaOS/common"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/sqlite"
@@ -65,8 +65,10 @@ func init() {
 		_logger.DebugMode = true
 	}
 
+	initMgr := init_system.NewInitManager()
+
 	if !*forceFlag {
-		serviceEnabled, err := systemctl.IsServiceEnabled(casaosServiceName)
+		serviceEnabled, err := initMgr.IsServiceEnabled(casaosServiceName)
 		if err != nil {
 			panic(err)
 		}
